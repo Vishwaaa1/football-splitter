@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Football Payment Splitter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#14161c" />
+<style>
+:root{
+  --bg:#14161c; --panel:#1e212b; --panel2:#262a37; --line:#303548;
+  --text:#f2f3f7; --muted:#98a2c3; --primary:#4dabf7; --btn:#2563eb; --btn-h:#1d4fd0;
+  --green:#3ddc84; --red:#ff6b6b; --amber:#ffc266; --chip:#2d3350; --chip-on:#0069ff;
+  --nav-h:62px; --bar-h:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+body{padding-bottom:calc(var(--nav-h) + var(--bar-h) + 24px + env(safe-area-inset-bottom))}
+body.no-bar{padding-bottom:calc(var(--nav-h) + 24px + env(safe-area-inset-bottom))}
+header{padding:calc(14px + env(safe-area-inset-top)) 16px 4px;text-align:center}
+header h1{margin:0;font-size:1.35rem;color:var(--primary);letter-spacing:-.3px}
+header p{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+main{max-width:640px;margin:0 auto;padding:10px 12px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--panel);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px #0003}
+.card h2{margin:0 0 10px;font-size:1rem;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card h2 small{font-weight:400;color:var(--muted);font-size:.8rem}
+label.l{display:block;color:var(--muted);font-size:.82rem;margin:0 0 4px;font-weight:600}
+input,select{font:inherit;font-size:16px;color:var(--text);background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;outline:none;min-width:0}
+input:focus,select:focus{border-color:var(--primary)}
+input[type=date]{color-scheme:dark}
+.row{display:flex;gap:8px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{margin-bottom:10px}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 14px;background:var(--btn);color:#fff;cursor:pointer;transition:background .15s,transform .05s}
+button:hover{background:var(--btn-h)}button:active{transform:scale(.97)}
+button.sec{background:var(--chip);color:#d7e3ff}button.sec:hover{background:#3a4166}
+button.ok{background:#1f9d55}button.ok:hover{background:#17803f}
+button.danger{background:#3a2530;color:#ff9aa5}
+button.sm{padding:7px 11px;font-size:.88rem}
+button.full{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--chip);color:#d7e3ff;border-radius:20px;padding:9px 15px;font-weight:500;border:2px solid transparent;user-select:none;cursor:pointer}
+.chip.on{background:var(--chip-on);color:#fff;border-color:#9bcfff}
+.chip.seg{padding:8px 14px}
+.muted{color:var(--muted)}.empty{color:var(--muted);font-style:italic;padding:6px 0}
+.pl{display:grid;grid-template-columns:1fr 84px 84px 34px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.pl:last-child{border-bottom:0}
+.pl .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.pl .nm small{display:block;color:var(--muted);font-weight:400;font-size:.72rem}
+.pl input,.pl select{padding:8px 8px;text-align:center}
+.pl.head{color:var(--muted);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding-top:0}
+.pl .x{padding:6px;background:var(--panel2);color:#b4caf2}
+.ex{display:grid;grid-template-columns:1fr 100px 34px;gap:6px;margin-bottom:6px}
+.ex .x{padding:6px;background:var(--panel2);color:#b4caf2}
+.res-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.res-row:last-child{border-bottom:0}
+.pos{color:var(--green);font-weight:600}.neg{color:var(--red);font-weight:600}
+.big{font-size:1.9rem;font-weight:800;color:var(--green);line-height:1.1}
+.stat{display:flex;gap:10px;margin-bottom:12px}
+.stat>div{flex:1;background:var(--panel2);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.15rem}.stat span{font-size:.74rem;color:var(--muted)}
+.warn{background:#3a3020;color:var(--amber);border-radius:10px;padding:9px 12px;margin:8px 0;font-size:.9rem}
+.note{background:#1d2f3f;color:#9fd2ff;border-radius:10px;padding:9px 12px;margin:8px 0;font-size:.9rem}
+.pay{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.pay:last-child{border-bottom:0}
+.pay .who{flex:1;min-width:0}.pay .who small{color:var(--muted);display:block}
+.pay.done .who{opacity:.5;text-decoration:line-through}
+.pay input[type=checkbox]{width:24px;height:24px;accent-color:var(--green);flex:none}
+.pay a{color:#fff;background:#6c3fc7;border-radius:8px;padding:6px 10px;font-size:.85rem;text-decoration:none;font-weight:600}
+.hist-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.badge{font-size:.72rem;padding:3px 9px;border-radius:12px;font-weight:700}
+.badge.ok{background:#173a28;color:var(--green)}.badge.pend{background:#3a3020;color:var(--amber)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.actions>button{flex:1 1 120px}
+.mem{display:grid;grid-template-columns:1fr 1.1fr 38px;gap:6px;align-items:center;margin-bottom:8px}
+.mem input{padding:9px 10px}
+/* Bars */
+#bar{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));z-index:30;background:#0f1117f2;backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+#bar .in{max-width:640px;margin:auto;padding:9px 12px;display:flex;align-items:center;gap:12px;height:var(--bar-h)}
+#bar .sum{flex:1;min-width:0;line-height:1.2}#bar .sum b{font-size:1.15rem;color:var(--green)}#bar .sum span{display:block;font-size:.78rem;color:var(--muted)}
+#bar button{padding:12px 20px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#10121a;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .in{max-width:640px;margin:auto;display:flex;height:var(--nav-h)}
+nav button{flex:1;background:none;border-radius:0;color:var(--muted);font-size:.74rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px}
+nav button .ic{font-size:1.35rem;line-height:1}
+nav button.on{color:var(--primary)}
+nav button .dot{background:var(--red);color:#fff;border-radius:10px;font-size:.65rem;padding:0 6px;margin-left:4px}
+#toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);bottom:calc(var(--nav-h) + var(--bar-h) + 16px + env(safe-area-inset-bottom));background:#2c3150;color:#fff;border-radius:12px;padding:11px 16px;z-index:60;opacity:0;pointer-events:none;transition:.25s;display:flex;gap:14px;align-items:center;max-width:92vw;box-shadow:0 4px 20px #0008}
+#toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+#toast button{background:none;color:var(--amber);padding:2px 4px}
+@media (min-width:700px){main{padding-top:18px}header h1{font-size:1.7rem}}
+@media (max-width:380px){.pl{grid-template-columns:1fr 74px 74px 30px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚽ Football Payment Splitter</h1>
+  <p>Split the booking, track who has paid</p>
+</header>
+
+<main>
+  <!-- ============ SESSION TAB ============ -->
+  <section class="tab on" id="tab-session">
+    <div class="card">
+      <h2>Session details</h2>
+      <div class="grid2">
+        <div class="field"><label class="l" for="fTitle">Name / venue</label><input id="fTitle" type="text" placeholder="e.g. Sunday turf" autocomplete="off"></div>
+        <div class="field"><label class="l" for="fDate">Date</label><input id="fDate" type="date"></div>
+      </div>
+      <div class="field"><label class="l" for="fTotal">Booking cost (₹)</label><input id="fTotal" type="number" inputmode="decimal" min="0" step="any" placeholder="1500"></div>
+
+      <label class="l">Extra costs <span style="font-weight:400">(water, ball, referee…)</span></label>
+      <div id="extras"></div>
+      <button class="sec sm" data-act="addExtra">+ Add extra</button>
+
+      <div class="field" style="margin-top:14px">
+        <label class="l">Round each share up to</label>
+        <div class="chips" id="roundChips"></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label class="l" for="fBooker">Who paid the booking?</label>
+        <select id="fBooker"></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Players <small id="pcount"></small></h2>
+      <div class="chips" id="coreChips"></div>
+      <div class="actions" style="margin-top:10px">
+        <button class="sec sm" data-act="selectAll">Select all</button>
+        <button class="sec sm" data-act="clearAll">Clear</button>
+        <button class="sec sm" data-act="repeatLast">Same as last time</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <input id="guestName" type="text" placeholder="Add a guest…" autocomplete="off" enterkeyhint="done">
+        <button class="sec" style="flex:none" data-act="addGuest">+ Guest</button>
+      </div>
+      <div id="players" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card" id="resultCard">
+      <h2>Settlement</h2>
+      <div id="result"></div>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY TAB ============ -->
+  <section class="tab" id="tab-history">
+    <div id="dues"></div>
+    <div id="history"></div>
+  </section>
+
+  <!-- ============ MEMBERS TAB ============ -->
+  <section class="tab" id="tab-members">
+    <div class="card">
+      <h2>Core members <small>tap name to edit UPI ID</small></h2>
+      <div id="memList"></div>
+      <div class="row" style="margin-top:6px">
+        <input id="memName" type="text" placeholder="New member name" autocomplete="off" enterkeyhint="done">
+        <button style="flex:none" data-act="addMember">Add</button>
+      </div>
+      <p class="muted" style="font-size:.82rem;margin:10px 0 0">A UPI ID lets "Pay" buttons open GPay / PhonePe / Paytm directly for that person.</p>
+    </div>
+    <div class="card">
+      <h2>Defaults</h2>
+      <div class="grid2">
+        <div><label class="l" for="sTotal">Usual booking cost (₹)</label><input id="sTotal" type="number" inputmode="decimal" min="0"></div>
+        <div><label class="l" for="sRound">Default rounding</label>
+          <select id="sRound"><option value="0">Exact</option><option value="1">₹1</option><option value="5">₹5</option><option value="10">₹10</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Data</h2>
+      <p class="muted" style="font-size:.85rem;margin-top:0">Everything is saved on this device only. Download a backup to move it to another phone.</p>
+      <div class="actions" style="margin-top:0">
+        <button class="sec" data-act="exportData">⬇ Backup</button>
+        <button class="sec" data-act="importData">⬆ Restore</button>
+        <button class="danger" data-act="resetAll">Reset all</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </section>
+</main>
+
+<div id="bar">
+  <div class="in">
+    <div class="sum"><b id="barMain">—</b><span id="barSub">Add players &amp; cost</span></div>
+    <button class="ok" data-act="saveSession" id="barBtn">Save session</button>
+  </div>
+</div>
+
+<nav><div class="in">
+  <button data-tab="session" class="on"><span class="ic">⚽</span>Session</button>
+  <button data-tab="history"><span class="ic">🧾</span><span>History<span class="dot" id="dueDot" hidden></span></span></button>
+  <button data-tab="members"><span class="ic">👥</span>Members</button>
+</div></nav>
+
+<div id="toast"><span id="toastMsg"></span><button id="toastUndo" hidden>Undo</button></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const r2 = x => Math.round(x * 100) / 100;
+const money = n => { const v = r2(n); return '₹' + (Number.isInteger(v) ? v.toLocaleString('en-IN') : v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})); };
+const todayStr = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const fmtDate = s => { try { return new Date(s+'T00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch(e){ return s; } };
+const WEIGHTS = [[1,'Full'],[0.75,'¾'],[0.5,'Half'],[0.25,'¼']];
+
+/* ---------- state ---------- */
+const KEY = 'fps_v2';
+let S = load();
+function load(){
+  try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && Array.isArray(r.members)) return r; } catch(e){}
+  let old = []; try { old = JSON.parse(localStorage.getItem('football_core_members') || '[]'); } catch(e){}
+  return { members: old.map(n => ({id:uid(), name:n, upi:''})), history: [], settings: {total:1500, round:1}, draft: null };
+}
+function newDraft(){ return { title:'', date:todayStr(), total:S.settings.total, extras:[], round:S.settings.round, booker:'', attendees:[] }; }
+if (!S.draft) S.draft = newDraft();
+const D = () => S.draft;
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+/* ---------- core calculation ---------- */
+function compute(d){
+  const att = d.attendees, n = att.length;
+  const extras = d.extras.reduce((a,e) => a + num(e.amount), 0);
+  const cost = r2(num(d.total) + extras);
+  if (!n || cost <= 0) return null;
+  const tw = att.reduce((a,p) => a + p.w, 0);
+  const step = num(d.round);
+  const rows = att.map(p => {
+    const raw = cost * p.w / tw;
+    const share = step > 0 ? r2(Math.ceil(raw/step - 1e-9) * step) : r2(raw);
+    return { id:p.id, name:p.name, w:p.w, share, paid:num(p.paid), auto:false };
+  });
+  const booker = rows.find(r => r.id === d.booker);
+  if (booker) {
+    const others = rows.filter(r => r !== booker).reduce((a,r) => a + r.paid, 0);
+    booker.paid = r2(cost - others); booker.auto = true;
+  }
+  rows.forEach(r => r.bal = r2(r.paid - r.share));
+  const collected = r2(rows.reduce((a,r) => a + r.share, 0));
+  const buffer = r2(collected - cost);
+  const sumBal = r2(rows.reduce((a,r) => a + r.bal, 0));
+  let warn = '';
+  if (booker) booker.bal = r2(booker.bal - sumBal);       // booker keeps any rounding buffer
+  else if (Math.abs(sumBal) > 0.01) warn = `Advances paid (${money(rows.reduce((a,r)=>a+r.paid,0))}) don't match the total cost (${money(cost)}). Pick who paid the booking to fix this.`;
+  const rec = rows.filter(r => r.bal > 0.009).map(r => ({...r})).sort((a,b) => b.bal - a.bal);
+  const pay = rows.filter(r => r.bal < -0.009).map(r => ({...r})).sort((a,b) => a.bal - b.bal);
+  const settlements = []; let i = 0, j = 0;
+  while (i < rec.length && j < pay.length) {
+    const amt = r2(Math.min(rec[i].bal, -pay[j].bal));
+    if (amt > 0) { settlements.push({from:pay[j].name, to:rec[i].name, amount:amt, paid:false}); rec[i].bal = r2(rec[i].bal - amt); pay[j].bal = r2(pay[j].bal + amt); }
+    if (Math.abs(rec[i].bal) < 0.01) i++;
+    if (Math.abs(pay[j].bal) < 0.01) j++;
+  }
+  return { cost, extras, rows, settlements, buffer, warn, n, booker: booker ? booker.name : '' };
+}
+
+function shareText(o){
+  const L = [];
+  L.push(`⚽ ${o.title || 'Football'} – ${fmtDate(o.date)}`);
+  L.push(`Total ${money(o.cost)} • ${o.n} players${o.share ? ' • ' + money(o.share) + ' each' : ''}`);
+  const list = o.settlements.filter(s => !s.paid);
+  if (list.length) { L.push('', 'Please pay:'); list.forEach(s => L.push(`• ${s.from} → ${s.to}: ${money(s.amount)}`)); }
+  else L.push('', '✅ All settled!');
+  return L.join('\n');
+}
+function upiLink(name, amount, note){
+  const m = S.members.find(m => m.name === name);
+  if (!m || !m.upi) return '';
+  return `upi://pay?pa=${encodeURIComponent(m.upi)}&pn=${encodeURIComponent(name)}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note || 'Football')}`;
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg, undo){
+  $('#toastMsg').textContent = msg;
+  const u = $('#toastUndo'); u.hidden = !undo; u.onclick = () => { undo && undo(); $('#toast').classList.remove('show'); };
+  $('#toast').classList.add('show'); clearTimeout(toastT);
+  toastT = setTimeout(() => $('#toast').classList.remove('show'), undo ? 5500 : 2200);
+}
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); }
+  catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try{document.execCommand('copy')}catch(_){} a.remove(); }
+  toast('Copied to clipboard');
+}
+
+/* ---------- renderers ---------- */
+function renderExtras(){
+  $('#extras').innerHTML = D().extras.map(e => `
+    <div class="ex"><input type="text" placeholder="What for?" value="${esc(e.label)}" data-ex="${e.id}" data-f="label">
+    <input type="number" inputmode="decimal" min="0" placeholder="₹" value="${e.amount||''}" data-ex="${e.id}" data-f="amount">
+    <button class="x" data-act="delExtra" data-id="${e.id}" aria-label="Remove">✕</button></div>`).join('');
+}
+function renderRound(){
+  $('#roundChips').innerHTML = [[0,'Exact'],[1,'₹1'],[5,'₹5'],[10,'₹10']].map(([v,l]) =>
+    `<span class="chip seg ${num(D().round)===v?'on':''}" data-act="setRound" data-v="${v}">${l}</span>`).join('');
+}
+function renderBooker(){
+  const d = D();
+  if (d.booker && !d.attendees.some(a => a.id === d.booker)) d.booker = '';
+  $('#fBooker').innerHTML = `<option value="">Nobody / use advances only</option>` +
+    d.attendees.map(a => `<option value="${a.id}" ${a.id===d.booker?'selected':''}>${esc(a.name)}</option>`).join('');
+}
+function renderCore(){
+  const d = D();
+  $('#coreChips').innerHTML = S.members.length
+    ? S.members.map(m => `<span class="chip ${d.attendees.some(a=>a.id===m.id)?'on':''}" data-act="toggleCore" data-id="${m.id}">${esc(m.name)}</span>`).join('')
+    : '<span class="empty">No core members yet — add them in the Members tab.</span>';
+}
+function renderPlayers(){
+  const d = D();
+  $('#pcount').textContent = d.attendees.length ? d.attendees.length + ' playing' : '';
+  if (!d.attendees.length) { $('#players').innerHTML = '<div class="empty">Tap names above or add a guest.</div>'; return; }
+  $('#players').innerHTML = `<div class="pl head"><span>Player</span><span style="text-align:center">Share</span><span style="text-align:center">Advance ₹</span><span></span></div>` +
+    d.attendees.map(a => `<div class="pl">
+      <div class="nm">${esc(a.name)}<small>${a.core?'core':'guest'}${a.id===d.booker?' • booked':''}</small></div>
+      <select data-w="${a.id}" aria-label="Share weight">${WEIGHTS.map(([v,l]) => `<option value="${v}" ${a.w===v?'selected':''}>${l}</option>`).join('')}</select>
+      <input type="number" inputmode="decimal" min="0" placeholder="${a.id===d.booker?'auto':'0'}" value="${a.id===d.booker?'':(a.paid||'')}" ${a.id===d.booker?'disabled':''} data-paid="${a.id}" aria-label="Advance paid">
+      <button class="x" data-act="rmPlayer" data-id="${a.id}" aria-label="Remove">✕</button></div>`).join('');
+}
+function renderResult(){
+  const r = compute(D());
+  const bar = $('#barMain'), sub = $('#barSub'), box = $('#result');
+  document.body.classList.toggle('no-bar', !$('#tab-session').classList.contains('on'));
+  if (!r) {
+    box.innerHTML = '<div class="empty">Enter the cost and pick at least one player to see the split.</div>';
+    bar.textContent = '—'; sub.textContent = 'Add players & cost'; $('#barBtn').disabled = true; return;
+  }
+  $('#barBtn').disabled = false;
+  const per = r.rows.length ? r.rows[0].share : 0;
+  const uniform = r.rows.every(x => x.w === r.rows[0].w);
+  bar.textContent = uniform ? money(per) + ' / person' : money(r.cost) + ' total';
+  sub.textContent = `${r.n} player${r.n>1?'s':''} • total ${money(r.cost)}`;
+  let h = `<div class="stat"><div><b>${money(r.cost)}</b><span>Total${r.extras?' (incl. extras)':''}</span></div><div><b>${r.n}</b><span>Players</span></div><div><b>${uniform?money(per):'varies'}</b><span>Each</span></div></div>`;
+  if (r.warn) h += `<div class="warn">⚠ ${esc(r.warn)}</div>`;
+  if (r.buffer > 0.009) h += `<div class="note">ℹ Rounding collects ${money(r.buffer)} extra${r.booker?` — it goes to ${esc(r.booker)}.`:'.'}</div>`;
+  h += r.rows.map(x => {
+    const net = Math.abs(x.bal) < 0.01 ? '<span class="muted">settled</span>' : x.bal > 0 ? `<span class="pos">gets ${money(x.bal)}</span>` : `<span class="neg">pays ${money(-x.bal)}</span>`;
+    return `<div class="res-row"><span>${esc(x.name)} <span class="muted">· ${money(x.share)}</span></span>${net}</div>`;
+  }).join('');
+  h += `<h2 style="margin:16px 0 4px">Who pays whom</h2>`;
+  h += r.settlements.length ? r.settlements.map(s => `<div class="res-row"><span>${esc(s.from)} → ${esc(s.to)}</span><b>${money(s.amount)}</b></div>`).join('') : '<div class="empty">Nothing to settle 🎉</div>';
+  h += `<div class="actions"><button class="sec" data-act="shareWA">💬 WhatsApp</button><button class="sec" data-act="copyRes">📋 Copy</button></div>`;
+  box.innerHTML = h;
+}
+function renderHistory(){
+  // pending dues grouped by debtor
+  const dues = {};
+  S.history.forEach(s => s.settlements.forEach(x => { if (!x.paid) { (dues[x.from] = dues[x.from] || {total:0, items:[]}); dues[x.from].total = r2(dues[x.from].total + x.amount); dues[x.from].items.push(`${money(x.amount)} to ${x.to} (${fmtDate(s.date)})`); } }));
+  const names = Object.keys(dues).sort((a,b) => dues[b].total - dues[a].total);
+  $('#dues').innerHTML = names.length ? `<div class="card"><h2>Pending dues <small>across all sessions</small></h2>${names.map(n => `<div class="res-row" style="flex-direction:column;gap:2px"><div style="display:flex;justify-content:space-between"><b>${esc(n)}</b><span class="neg">${money(dues[n].total)}</span></div><small class="muted">${dues[n].items.map(esc).join(' • ')}</small></div>`).join('')}</div>` : '';
+  const dot = $('#dueDot'); dot.hidden = !names.length; dot.textContent = names.length;
+  $('#history').innerHTML = S.history.length ? S.history.map(s => {
+    const pend = s.settlements.filter(x => !x.paid).length;
+    return `<div class="card"><div class="hist-top"><div><b>${esc(s.title || 'Football')}</b><div class="muted" style="font-size:.82rem">${fmtDate(s.date)} • ${s.n} players • ${money(s.cost)}</div></div>
+      <span class="badge ${pend?'pend':'ok'}">${pend?pend+' pending':'All paid'}</span></div>
+      ${s.settlements.length ? s.settlements.map((x,i) => { const link = x.paid ? '' : upiLink(x.to, x.amount, (s.title||'Football')+' '+s.date);
+        return `<div class="pay ${x.paid?'done':''}"><input type="checkbox" ${x.paid?'checked':''} data-act="togglePaid" data-s="${s.id}" data-i="${i}" aria-label="Mark paid">
+        <div class="who">${esc(x.from)} → ${esc(x.to)}<small>${money(x.amount)}</small></div>${link?`<a href="${link}">Pay</a>`:''}</div>`; }).join('') : '<div class="empty">Nothing to settle.</div>'}
+      <div class="actions"><button class="sec sm" data-act="shareHist" data-id="${s.id}">💬 Share pending</button><button class="sec sm" data-act="loadHist" data-id="${s.id}">↻ Reuse players</button><button class="danger sm" data-act="delHist" data-id="${s.id}">Delete</button></div></div>`;
+  }).join('') : '<div class="card"><div class="empty">No saved sessions yet. Calculate a split and tap “Save session”.</div></div>';
+}
+function renderMembers(){
+  $('#memList').innerHTML = S.members.length ? S.members.map(m => `<div class="mem"><input type="text" value="${esc(m.name)}" data-mname="${m.id}" aria-label="Name"><input type="text" placeholder="UPI ID (optional)" value="${esc(m.upi||'')}" data-upi="${m.id}" autocapitalize="none" aria-label="UPI ID"><button class="danger" style="padding:9px" data-act="delMember" data-id="${m.id}" aria-label="Remove">✕</button></div>`).join('') : '<div class="empty">No members yet.</div>';
+  $('#sTotal').value = S.settings.total; $('#sRound').value = String(S.settings.round);
+}
+function renderAll(){ renderExtras(); renderRound(); renderBooker(); renderCore(); renderPlayers(); renderResult(); renderHistory(); renderMembers(); }
+function structural(){ renderBooker(); renderCore(); renderPlayers(); renderResult(); save(); }
+
+/* ---------- actions ---------- */
+const A = {
+  addExtra(){ D().extras.push({id:uid(), label:'', amount:''}); renderExtras(); save(); },
+  delExtra(t){ D().extras = D().extras.filter(e => e.id !== t.dataset.id); renderExtras(); renderResult(); save(); },
+  setRound(t){ D().round = num(t.dataset.v); renderRound(); renderResult(); save(); },
+  toggleCore(t){
+    const d = D(), id = t.dataset.id, i = d.attendees.findIndex(a => a.id === id);
+    if (i > -1) d.attendees.splice(i,1);
+    else { const m = S.members.find(m => m.id === id); if (m) d.attendees.push({id:m.id, name:m.name, core:true, w:1, paid:0}); }
+    structural();
+  },
+  selectAll(){ S.members.forEach(m => { if (!D().attendees.some(a => a.id === m.id)) D().attendees.push({id:m.id, name:m.name, core:true, w:1, paid:0}); }); structural(); },
+  clearAll(){ if (!D().attendees.length) return; const snap = JSON.stringify(D().attendees); D().attendees = []; structural(); toast('Players cleared', () => { D().attendees = JSON.parse(snap); structural(); }); },
+  repeatLast(){
+    const last = S.history[0]; if (!last) return toast('No previous session yet');
+    loadPlayers(last); toast('Loaded players from ' + fmtDate(last.date));
+  },
+  addGuest(){
+    const inp = $('#guestName'), name = inp.value.trim();
+    if (!name) return inp.focus();
+    if (D().attendees.some(a => a.name.toLowerCase() === name.toLowerCase())) return toast(name + ' is already in the list');
+    const m = S.members.find(m => m.name.toLowerCase() === name.toLowerCase());
+    D().attendees.push(m ? {id:m.id, name:m.name, core:true, w:1, paid:0} : {id:uid(), name, core:false, w:1, paid:0});
+    inp.value = ''; structural(); inp.focus();
+  },
+  rmPlayer(t){ D().attendees = D().attendees.filter(a => a.id !== t.dataset.id); structural(); },
+  shareWA(){ const r = compute(D()); if (!r) return; window.open('https://wa.me/?text=' + encodeURIComponent(shareText(sessionObj(r))), '_blank'); },
+  copyRes(){ const r = compute(D()); if (r) copyText(shareText(sessionObj(r))); },
+  saveSession(){
+    const r = compute(D()); if (!r) return;
+    const d = D();
+    if (r.warn && !confirm('The advances do not add up to the total cost. Save anyway?')) return;
+    S.history.unshift(Object.assign(sessionObj(r), {id:uid(), attendees:d.attendees.map(a => ({id:a.id, name:a.name, core:a.core, w:a.w}))}));
+    const keep = {round:d.round};
+    S.draft = Object.assign(newDraft(), keep); save();
+    initInputs(); renderAll(); showTab('history'); toast('Session saved ✔');
+  },
+  togglePaid(t){
+    const s = S.history.find(s => s.id === t.dataset.s); if (!s) return;
+    s.settlements[+t.dataset.i].paid = t.checked; save(); renderHistory();
+  },
+  shareHist(t){ const s = S.history.find(s => s.id === t.dataset.id); if (s) window.open('https://wa.me/?text=' + encodeURIComponent(shareText(s)), '_blank'); },
+  loadHist(t){ const s = S.history.find(s => s.id === t.dataset.id); if (s) { loadPlayers(s); showTab('session'); toast('Players loaded'); } },
+  delHist(t){
+    const i = S.history.findIndex(s => s.id === t.dataset.id); if (i < 0) return;
+    const [rm] = S.history.splice(i,1); save(); renderHistory();
+    toast('Session deleted', () => { S.history.splice(i,0,rm); save(); renderHistory(); });
+  },
+  addMember(){
+    const inp = $('#memName'), name = inp.value.trim(); if (!name) return inp.focus();
+    if (S.members.some(m => m.name.toLowerCase() === name.toLowerCase())) return toast('Already exists');
+    S.members.push({id:uid(), name, upi:''}); inp.value = ''; save(); renderMembers(); renderCore(); inp.focus();
+  },
+  delMember(t){
+    const i = S.members.findIndex(m => m.id === t.dataset.id); if (i < 0) return;
+    const [rm] = S.members.splice(i,1);
+    const wasIn = D().attendees.find(a => a.id === rm.id);
+    D().attendees = D().attendees.filter(a => a.id !== rm.id);
+    save(); renderMembers(); structural();
+    toast(rm.name + ' removed', () => { S.members.splice(i,0,rm); if (wasIn) D().attendees.push(wasIn); save(); renderMembers(); structural(); });
+  },
+  exportData(){
+    const blob = new Blob([JSON.stringify(S,null,1)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'football-splitter-backup-' + todayStr() + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  },
+  importData(){ $('#importFile').click(); },
+  resetAll(){ if (confirm('Delete ALL members, history and settings on this device?')) { localStorage.removeItem(KEY); S = load(); S.draft = newDraft(); save(); initInputs(); renderAll(); toast('All data cleared'); } }
+};
+function sessionObj(r){
+  const d = D(), uniform = r.rows.every(x => x.w === r.rows[0].w);
+  return { date:d.date, title:d.title.trim(), cost:r.cost, n:r.n, share:uniform ? r.rows[0].share : 0, settlements:r.settlements.map(s => ({...s})) };
+}
+function loadPlayers(s){
+  D().attendees = (s.attendees || []).map(a => {
+    const m = S.members.find(m => m.name === a.name);
+    return m ? {id:m.id, name:m.name, core:true, w:a.w||1, paid:0} : {id:uid(), name:a.name, core:false, w:a.w||1, paid:0};
+  });
+  D().booker = ''; structural();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (t && A[t.dataset.act] && t.type !== 'checkbox') A[t.dataset.act](t, e);
+  const tb = e.target.closest('[data-tab]'); if (tb) showTab(tb.dataset.tab);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.act === 'togglePaid') A.togglePaid(t);
+  else if (t.dataset.w) { const a = D().attendees.find(a => a.id === t.dataset.w); if (a) { a.w = parseFloat(t.value); renderResult(); save(); } }
+  else if (t.id === 'fBooker') { D().booker = t.value; renderPlayers(); renderResult(); save(); }
+  else if (t.dataset.upi) { const m = S.members.find(m => m.id === t.dataset.upi); if (m) { m.upi = t.value.trim(); save(); } }
+  else if (t.dataset.mname) {
+    const m = S.members.find(m => m.id === t.dataset.mname), v = t.value.trim();
+    if (!m) return;
+    if (!v || S.members.some(x => x !== m && x.name.toLowerCase() === v.toLowerCase())) { t.value = m.name; return toast('Invalid or duplicate name'); }
+    m.name = v; const a = D().attendees.find(a => a.id === m.id); if (a) a.name = v; save(); structural();
+  }
+  else if (t.id === 'sTotal') { S.settings.total = num(t.value); save(); }
+  else if (t.id === 'sRound') { S.settings.round = num(t.value); save(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'fTitle') D().title = t.value;
+  else if (t.id === 'fDate') D().date = t.value || todayStr();
+  else if (t.id === 'fTotal') D().total = t.value;
+  else if (t.dataset.ex) { const x = D().extras.find(x => x.id === t.dataset.ex); if (x) x[t.dataset.f] = t.value; }
+  else if (t.dataset.paid) { const a = D().attendees.find(a => a.id === t.dataset.paid); if (a) a.paid = Math.max(0, num(t.value)); }
+  else return;
+  renderResult(); save();
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'guestName') A.addGuest();
+  if (e.target.id === 'memName') A.addMember();
+});
+$('#importFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const o = JSON.parse(rd.result);
+      if (!o || !Array.isArray(o.members) || !Array.isArray(o.history)) throw 0;
+      if (!confirm('Replace current data with this backup?')) return;
+      S = o; S.settings = S.settings || {total:1500, round:1}; if (!S.draft) S.draft = newDraft();
+      save(); initInputs(); renderAll(); toast('Backup restored');
+    } catch(err){ toast('That file is not a valid backup'); }
+  };
+  rd.readAsText(f); e.target.value = '';
+});
+
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + name));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  $('#bar').style.display = name === 'session' ? '' : 'none';
+  document.body.classList.toggle('no-bar', name !== 'session');
+  $('#toast').style.bottom = `calc(var(--nav-h) + ${name==='session'?'var(--bar-h) + ':''}16px + env(safe-area-inset-bottom))`;
+  window.scrollTo({top:0});
+}
+function initInputs(){
+  $('#fTitle').value = D().title; $('#fDate').value = D().date; $('#fTotal').value = D().total;
+}
+initInputs(); renderAll(); showTab('session');
+</script>
+</body>
+</html>
